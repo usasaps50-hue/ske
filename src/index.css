@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  
+  --color-primary: #3B82F6;
+  --color-text-main: #1F2937;
+  --color-text-muted: #6B7280;
+  --color-line-green: #06C755;
+  --color-border-theme: #E5E7EB;
+
+  /* User colors - High Density theme */
+  --color-user-me: #E0F2FE;
+  --color-user-me-text: #0369A1;
+  --color-user-a: #FCE7F3;
+  --color-user-a-text: #BE185D;
+  --color-user-b: #DCFCE7;
+  --color-user-b-text: #15803D;
+  --color-user-c: #FEF3C7;
+  --color-user-c-text: #B45309;
+  --color-user-d: #F3E8FF;
+  --color-user-d-text: #7C3AED;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-zinc-100 text-text-main;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* High Density Specific overrides */
+.high-density-card {
+  @apply bg-white border border-border-theme rounded-xl shadow-sm;
+}
+
+.high-density-goal {
+  @apply bg-zinc-50 border border-border-theme rounded-xl p-3;
+}

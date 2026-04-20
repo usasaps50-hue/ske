@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(xcodebuild -version)",
+      "Bash(sw_vers)",
+      "Bash(brew --version)",
+      "Read(//Users/s/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(command -v corepack)",
+      "Bash(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)",
+      "Bash(bash)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(pod --version)",
+      "Bash(gem --version)",
+      "Bash(mkdir -p ~/Developer)",
+      "Bash(mv \"/Users/s/Desktop/名称未設定フォルダ\" ~/Developer/Kizuna)"
+    ]
+  }
+}
