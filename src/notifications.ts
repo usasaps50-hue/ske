@@ -59,9 +59,7 @@ export async function rescheduleAll(
     const meta = dayMetas[dateKey];
     const goal = meta?.goal?.trim() ?? '';
     const todos = (meta?.todos ?? []).filter((t) => !t.completed).map((t) => t.text);
-    const items = todays
-      .flatMap((e) => e.items.filter((i) => !i.completed).map((i) => i.text))
-      .filter((t, i, a) => a.indexOf(t) === i);
+    const items = (meta?.items ?? []).filter((i) => !i.completed).map((i) => i.text);
 
     if (!goal && todos.length === 0 && todays.length === 0 && items.length === 0) continue;
 

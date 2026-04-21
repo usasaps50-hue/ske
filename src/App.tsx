@@ -17,9 +17,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import {
   type EventItem,
-  type ChecklistItem,
   type UserColor,
-  ALL_USER_COLORS,
   type NotificationSettings,
   type DayMeta,
   loadEvents,
@@ -46,14 +44,6 @@ const USER_COLOR_CLASS: Record<UserColor, string> = {
   b: 'bg-user-b text-user-b-text',
   c: 'bg-user-c text-user-c-text',
   d: 'bg-user-d text-user-d-text',
-};
-
-const USER_COLOR_LABEL: Record<UserColor, string> = {
-  me: '自分',
-  a: '家族A',
-  b: '家族B',
-  c: '家族C',
-  d: '家族D',
 };
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -219,7 +209,6 @@ const MonthlyCalendar = ({
                       key={event.id}
                       className={`${USER_COLOR_CLASS[event.userColor]} text-[7px] font-bold px-1 py-0.5 rounded-[2px] truncate flex items-center gap-0.5 leading-tight`}
                     >
-                      {event.items.length > 0 && <Package size={6} />}
                       {event.title}
                     </div>
                   ))}
@@ -253,7 +242,6 @@ const DayDetailModal = ({
   onClose,
   onEditEvent,
   onAddEvent,
-  onToggleItem,
   onDeleteEvent,
 }: {
   selectedDate: string;
@@ -263,7 +251,6 @@ const DayDetailModal = ({
   onClose: () => void;
   onEditEvent: (e: EventItem) => void;
   onAddEvent: () => void;
-  onToggleItem: (eventId: string, itemId: string) => void;
   onDeleteEvent: (eventId: string) => void;
 }) => {
   const date = fromDateKey(selectedDate);
@@ -271,6 +258,7 @@ const DayDetailModal = ({
     .filter((e) => e.date === selectedDate)
     .sort((a, b) => a.time.localeCompare(b.time));
   const [newTodo, setNewTodo] = useState('');
+  const [newItem, setNewItem] = useState('');
 
   const addTodo = () => {
     const t = newTodo.trim();
@@ -291,6 +279,27 @@ const DayDetailModal = ({
 
   const removeTodo = (id: string) => {
     onUpdateDayMeta((prev) => ({ ...prev, todos: prev.todos.filter((t) => t.id !== id) }));
+  };
+
+  const addItem = () => {
+    const t = newItem.trim();
+    if (!t) return;
+    onUpdateDayMeta((prev) => ({
+      ...prev,
+      items: [...prev.items, { id: newId(), text: t, completed: false }],
+    }));
+    setNewItem('');
+  };
+
+  const toggleItem = (id: string) => {
+    onUpdateDayMeta((prev) => ({
+      ...prev,
+      items: prev.items.map((i) => (i.id === id ? { ...i, completed: !i.completed } : i)),
+    }));
+  };
+
+  const removeItem = (id: string) => {
+    onUpdateDayMeta((prev) => ({ ...prev, items: prev.items.filter((i) => i.id !== id) }));
   };
 
   return (
@@ -434,37 +443,64 @@ const DayDetailModal = ({
                       </button>
                     </div>
                   </div>
-                  {event.items.length > 0 && (
-                    <div className="bg-white px-3 py-2 space-y-1.5">
-                      <div className="text-[8px] font-bold text-text-muted uppercase tracking-wider">
-                        持っていくもの
-                      </div>
-                      {event.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => onToggleItem(event.id, item.id)}
-                      className="flex items-center gap-2 w-full text-left py-0.5"
-                    >
-                      <div
-                        className={`w-4 h-4 rounded-[3px] border flex items-center justify-center transition-colors ${
-                          item.completed ? 'bg-primary border-primary' : 'border-border-theme'
-                        }`}
-                      >
-                        {item.completed && <CheckCircle2 size={12} className="text-white" />}
-                      </div>
-                      <span
-                        className={`text-[11px] ${
-                          item.completed ? 'text-text-muted line-through' : 'font-medium'
-                        }`}
-                      >
-                        {item.text}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Package size={12} className="text-primary" />
+              <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">
+                持っていくもの
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {dayMeta.items.map((i) => (
+                <div key={i.id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleItem(i.id)}
+                    className={`w-4 h-4 rounded-[3px] border flex items-center justify-center shrink-0 ${
+                      i.completed ? 'bg-primary border-primary' : 'border-border-theme'
+                    }`}
+                  >
+                    {i.completed && <CheckCircle2 size={12} className="text-white" />}
+                  </button>
+                  <span
+                    className={`flex-1 text-[11px] ${
+                      i.completed ? 'text-text-muted line-through' : 'font-medium'
+                    }`}
+                  >
+                    {i.text}
+                  </span>
+                  <button
+                    onClick={() => removeItem(i.id)}
+                    className="p-1 text-text-muted hover:text-red-500"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <input
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addItem();
+                    }
+                  }}
+                  placeholder="持っていくものを追加..."
+                  className="flex-1 text-[11px] border border-border-theme rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
+                />
+                <button
+                  onClick={addItem}
+                  className="px-3 bg-primary text-white rounded-lg text-[11px] font-bold"
+                >
+                  <Plus size={12} />
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -496,16 +532,7 @@ const EventEditor = ({
   const [title, setTitle] = useState(initial?.title ?? '');
   const [date, setDate] = useState(initial?.date ?? defaultDate);
   const [time, setTime] = useState(initial?.time ?? '09:00');
-  const [userColor, setUserColor] = useState<UserColor>(initial?.userColor ?? 'me');
-  const [items, setItems] = useState<ChecklistItem[]>(initial?.items ?? []);
-  const [newItemText, setNewItemText] = useState('');
-
-  const addItem = () => {
-    const t = newItemText.trim();
-    if (!t) return;
-    setItems([...items, { id: newId(), text: t, completed: false }]);
-    setNewItemText('');
-  };
+  const userColor: UserColor = initial?.userColor ?? 'me';
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -518,7 +545,6 @@ const EventEditor = ({
       time,
       title: title.trim(),
       userColor,
-      items,
     });
   };
 
@@ -583,52 +609,9 @@ const EventEditor = ({
             </label>
           </div>
 
-          <div>
-            <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">
-              持っていくもの
-            </span>
-            <div className="mt-1 space-y-1.5">
-              {items.map((item, idx) => (
-                <div key={item.id} className="flex items-center gap-2">
-                  <input
-                    value={item.text}
-                    onChange={(e) => {
-                      const copy = [...items];
-                      copy[idx] = { ...item, text: e.target.value };
-                      setItems(copy);
-                    }}
-                    className="flex-1 text-[12px] border border-border-theme rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
-                  />
-                  <button
-                    onClick={() => setItems(items.filter((_, i) => i !== idx))}
-                    className="p-1.5 text-text-muted hover:text-red-500"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <input
-                  value={newItemText}
-                  onChange={(e) => setNewItemText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addItem();
-                    }
-                  }}
-                  placeholder="追加..."
-                  className="flex-1 text-[12px] border border-border-theme rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary"
-                />
-                <button
-                  onClick={addItem}
-                  className="px-3 bg-primary text-white rounded-lg text-[11px] font-bold"
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
+          <p className="text-[9px] text-text-muted leading-relaxed">
+            ※ 持っていくものは日付詳細（カレンダーを ダブルタップ）の「持っていくもの」セクションで日単位に追加できます。
+          </p>
         </div>
 
         <footer className="sticky bottom-0 bg-white px-4 py-3 border-t border-border-theme">
@@ -794,28 +777,15 @@ export default function App() {
     [setEvents],
   );
 
-  const handleToggleItem = useCallback(
-    (eventId: string, itemId: string) => {
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id !== eventId
-            ? e
-            : {
-                ...e,
-                items: e.items.map((i) =>
-                  i.id === itemId ? { ...i, completed: !i.completed } : i,
-                ),
-              },
-        ),
-      );
-    },
-    [setEvents],
-  );
-
   const updateDayMeta = useCallback(
     (dateKey: string, updater: (prev: DayMeta) => DayMeta) => {
       setDayMetas((prev) => {
-        const current: DayMeta = prev[dateKey] ?? { date: dateKey, goal: '', todos: [] };
+        const current: DayMeta = prev[dateKey] ?? {
+          date: dateKey,
+          goal: '',
+          todos: [],
+          items: [],
+        };
         const next = updater(current);
         return { ...prev, [dateKey]: next };
       });
@@ -876,12 +846,11 @@ export default function App() {
             <DayDetailModal
               selectedDate={detailDate}
               events={events}
-              dayMeta={dayMetas[detailDate] ?? { date: detailDate, goal: '', todos: [] }}
+              dayMeta={dayMetas[detailDate] ?? { date: detailDate, goal: '', todos: [], items: [] }}
               onUpdateDayMeta={(updater) => updateDayMeta(detailDate, updater)}
               onClose={() => setDetailDate(null)}
               onEditEvent={(e) => setEditor({ open: true, initial: e })}
               onAddEvent={() => setEditor({ open: true, initial: null })}
-              onToggleItem={handleToggleItem}
               onDeleteEvent={handleDeleteEvent}
             />
           )}

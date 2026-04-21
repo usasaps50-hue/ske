@@ -14,13 +14,13 @@ export interface EventItem {
   title: string;
   time: string;
   userColor: UserColor;
-  items: ChecklistItem[];
 }
 
 export interface DayMeta {
   date: string;
   goal: string;
   todos: ChecklistItem[];
+  items: ChecklistItem[];
 }
 
 export interface NotificationSettings {
